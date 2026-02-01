@@ -1,0 +1,8 @@
+{
+  "name": "StudyGuardian AI",
+  "description": "An AI-powered study companion that generates lessons, recognizes handwriting via webcam, and provides a focused learning environment for kids.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
