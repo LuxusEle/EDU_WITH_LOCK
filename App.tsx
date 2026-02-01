@@ -38,6 +38,20 @@ export default function App() {
   // Focus Guard
   const [focusWarnings, setFocusWarnings] = useState(0);
 
+  // --- Init ---
+  useEffect(() => {
+    // Check for API Key selection if available in the environment (e.g. AI Studio Preview)
+    const checkKey = async () => {
+        if ((window as any).aistudio && (window as any).aistudio.hasSelectedApiKey) {
+            const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+            if (!hasKey && (window as any).aistudio.openSelectKey) {
+                 await (window as any).aistudio.openSelectKey();
+            }
+        }
+    };
+    checkKey();
+  }, []);
+
   // --- Handlers ---
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,8 +85,16 @@ export default function App() {
       setCurrentLesson(newLesson);
       setLessonStatus(LessonStatus.READY);
       localStorage.setItem('currentLesson', JSON.stringify(newLesson));
-    } catch (e) {
-      alert("Failed to create lesson. Please check API Key.");
+    } catch (e: any) {
+      console.error(e);
+      alert(`Failed to create lesson: ${e.message}. Please ensure you have a valid API Key selected.`);
+      
+      // If error suggests missing key, try to prompt
+      if (e.message?.includes("key") || e.message?.includes("403") || e.message?.includes("401")) {
+         if ((window as any).aistudio && (window as any).aistudio.openSelectKey) {
+             (window as any).aistudio.openSelectKey();
+         }
+      }
       setLessonStatus(LessonStatus.IDLE);
     }
   };
@@ -90,8 +112,12 @@ export default function App() {
     setIsProcessing(true);
     
     // AI Transcription
-    const text = await transcribeHandwriting(imageData);
-    setTranscribedText(text);
+    try {
+        const text = await transcribeHandwriting(imageData);
+        setTranscribedText(text);
+    } catch (e) {
+        setTranscribedText("Error reading text.");
+    }
     setIsProcessing(false);
   };
 

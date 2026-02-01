@@ -1,8 +1,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Lesson, Slide, Question, GradeResult, Syllabus } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+// Note: We instantiate GoogleGenAI inside functions to ensure we pick up the latest process.env.API_KEY
 
 // -- Schemas --
 
@@ -66,6 +65,8 @@ export const generateLessonContent = async (
   sourceImages?: string[] // Array of base64 strings
 ): Promise<{ slides: Slide[], questions: Question[] }> => {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
     let promptText = `Create a study lesson for a ${age}-year-old student.
     Syllabus/Context: ${syllabus}.
     Topic: "${topic}".
@@ -113,6 +114,7 @@ export const generateLessonContent = async (
 
 export const transcribeHandwriting = async (base64Image: string): Promise<string> => {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const cleanBase64 = base64Image.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
 
     const response = await ai.models.generateContent({
@@ -141,6 +143,7 @@ export const transcribeHandwriting = async (base64Image: string): Promise<string
 
 export const gradeAnswer = async (question: string, studentAnswer: string, correctAnswer: string): Promise<GradeResult> => {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `
     Question: ${question}
     Correct Answer Logic: ${correctAnswer}
@@ -169,6 +172,7 @@ export const gradeAnswer = async (question: string, studentAnswer: string, corre
 
 export const askVoiceTutor = async (question: string, context: string): Promise<string> => {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Context Slide Content: ${context}\n\nStudent Question: ${question}\n\nAnswer the student briefly and encouragingly in 2-3 sentences.`,
